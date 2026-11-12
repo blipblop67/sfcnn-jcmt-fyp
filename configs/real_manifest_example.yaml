@@ -1,0 +1,16 @@
+# Example manifest for real JCMT SCUBA-2 data. Paths are relative to this file.
+# One entry per map. Download the maps and catalogues yourself (see README).
+regions:
+  - name: OrionB_N2023
+    map: ../data/real/OrionB_N2023_850um.fits      # SCUBA-2 850 um map (FITS, VARIANCE extension)
+    variance_hdu: auto                             # or an extension name / index; null = estimate noise
+    yso_catalog: ../data/real/orion_protostars.csv # needs RA/Dec (deg) + evolutionary class
+    yso_columns: {ra: RAJ2000, dec: DEJ2000, class: Class}
+    # Optional: use a published core catalogue instead of the built-in peak finder
+    # source_catalog: ../data/real/orionB_gbs_cores.csv
+    # source_columns: {ra: RA, dec: Dec}
+
+  - name: Perseus_NGC1333
+    map: ../data/real/Perseus_NGC1333_850um.fits
+    yso_catalog: ../data/real/c2d_gb_ysos.csv
+    yso_columns: {ra: RAJ2000, dec: DEJ2000, class: Class}

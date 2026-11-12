@@ -1,0 +1,48 @@
+# sfcnn default configuration (synthetic demo survey).
+# For real data copy this to configs/real.yaml and point data.manifest at your manifest.
+
+data:
+  manifest: data/synthetic/manifest.yaml
+  output: data/processed/dataset.npz
+
+beam_fwhm_arcsec: 14.1          # SCUBA-2 850 um effective beam
+
+detection:                      # used when a region has no source_catalog
+  snr_threshold: 5.0
+  min_separation_arcsec: 15.0   # ~1 beam
+  smooth_fwhm_arcsec: 7.0
+
+labels:
+  sf_classes: ["0", "I", "0/I", "FLAT"]   # embedded protostars => "star-forming"
+  match_radius_arcsec: 15.0     # protostar within ~1 beam of the peak -> label 1
+  exclusion_radius_arcsec: 30.0 # no protostar within this -> label 0; in between dropped
+  ambiguous_if_other_yso: true  # Class II/III on the peak -> dropped
+
+cutout:
+  size_arcsec: 96.0             # ~7 beams across; ~0.14 pc at 300 pc
+  npix: 32                      # 3"/pixel, the GBS map pixel size
+  max_nan_fraction: 0.1
+
+split:
+  mode: region                  # region | spatial | random
+  val_fraction: 0.17            # of regions (region mode) or cores (spatial/random)
+  test_fraction: 0.25
+  val_regions: []               # e.g. ["OrionB_N2023"]; empty = random choice
+  test_regions: []
+  block_arcsec: 300.0           # spatial mode block size
+  buffer: true                  # drop train cores overlapping held-out cutouts
+  seed: 42
+
+model:
+  widths: [32, 64, 128]
+  dropout: 0.3
+
+train:
+  epochs: 60
+  batch_size: 64
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  patience: 12
+  seed: 42
+  augment: true
+  run_dir: runs/sfnet
