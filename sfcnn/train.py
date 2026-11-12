@@ -70,13 +70,15 @@ def train(cfg: dict, dataset_path: str | None = None, run_dir: str | None = None
         val_acc = float(((p_va > 0.5) == y[va]).mean())
         history.append({"epoch": epoch, "train_loss": tot / nb, "val_loss": val_loss,
                         "val_auc": val_auc, "val_acc": val_acc, "lr": sched.get_last_lr()[0]})
-        improved = val_auc > best_auc + 1e-4
+        # With tiny validation sets the AUC is noisy, so ignore checkpoints before min_epochs.
+        warm = epoch >= tc.get("min_epochs", 0)
+        improved = warm and val_auc > best_auc + 1e-4
         if improved:
             best_auc, best_epoch, bad = val_auc, epoch, 0
             torch.save({"state_dict": model.state_dict(), "config": cfg, "in_channels": X.shape[1],
                         "splits": {k: v.tolist() for k, v in splits.items()}, "epoch": epoch,
                         "val_auc": val_auc}, run_dir / "best.pt")
-        else:
+        elif warm:
             bad += 1
         if verbose:
             print(f"ep {epoch:3d}  train_loss {tot / nb:.4f}  val_loss {val_loss:.4f}  "

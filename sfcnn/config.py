@@ -18,7 +18,7 @@ DEFAULTS: dict = {
               "val_regions": [], "test_regions": []},
     "model": {"widths": [32, 64, 128], "dropout": 0.3},
     "train": {"epochs": 60, "batch_size": 64, "lr": 1.0e-3, "weight_decay": 1.0e-4,
-              "patience": 12, "seed": 42, "augment": True, "run_dir": "runs/sfnet"},
+              "min_epochs": 0, "patience": 12, "seed": 42, "augment": True, "run_dir": "runs/sfnet"},
 }
 
 

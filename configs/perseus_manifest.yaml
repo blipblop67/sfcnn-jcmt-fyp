@@ -1,0 +1,9 @@
+# Real JCMT data: Gould Belt Survey DR3 850 um maps of Perseus (Kirk et al. 2018, doi:10.11570/18.0005)
+# + Spitzer YSOs from Dunham et al. (2015). Paths are relative to this file.
+regions:
+  - name: PerseusWest
+    map: ../data/real/PerseusWest_20170815_850_DR3_ext_HK.fits.gz
+    yso_catalog: ../data/real/perseus_ysos.csv
+  - name: PerseusIC348
+    map: ../data/real/PerseusIC348_20170725_850_DR3_ext_HK.fits.gz
+    yso_catalog: ../data/real/perseus_ysos.csv

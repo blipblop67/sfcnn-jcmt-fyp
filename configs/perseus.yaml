@@ -1,0 +1,18 @@
+# Real-data run on JCMT GBS Perseus (2 maps). Unlisted settings come from the defaults in sfcnn/config.py.
+data:
+  manifest: configs/perseus_manifest.yaml
+  output: data/processed/perseus.npz
+
+split:
+  mode: spatial          # only 2 maps, so hold out spatial blocks rather than whole regions
+  val_fraction: 0.15
+  test_fraction: 0.2
+  block_arcsec: 300.0
+  buffer: true
+  seed: 42
+
+train:
+  epochs: 80
+  min_epochs: 25         # val set is ~30 cores: don't trust its AUC in the first epochs
+  patience: 15
+  run_dir: runs/perseus_min25
