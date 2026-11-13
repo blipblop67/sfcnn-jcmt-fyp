@@ -11,7 +11,8 @@ DEFAULTS: dict = {
     "beam_fwhm_arcsec": 14.1,
     "detection": {"snr_threshold": 5.0, "min_separation_arcsec": 15.0, "smooth_fwhm_arcsec": 7.0},
     "labels": {"sf_classes": ["0", "I", "0/I", "FLAT"], "match_radius_arcsec": 15.0,
-               "exclusion_radius_arcsec": 30.0, "ambiguous_if_other_yso": True},
+               "exclusion_radius_arcsec": 30.0, "ambiguous_if_other_yso": True,
+               "coverage_radius_arcmin": 10.0},
     "cutout": {"size_arcsec": 96.0, "npix": 32, "max_nan_fraction": 0.1},
     "split": {"mode": "spatial", "val_fraction": 0.15, "test_fraction": 0.15,
               "block_arcsec": 300.0, "buffer": True, "seed": 42,
@@ -42,7 +43,7 @@ def load_manifest(path: str | Path) -> list[dict]:
     with open(path, encoding="utf-8") as f:
         regions = yaml.safe_load(f)["regions"]
     for r in regions:
-        for key in ("map", "yso_catalog", "source_catalog"):
+        for key in ("map", "map_450", "yso_catalog", "source_catalog"):
             if r.get(key) and not Path(r[key]).is_absolute():
                 r[key] = str((path.parent / r[key]).resolve())
     return regions

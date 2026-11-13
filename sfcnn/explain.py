@@ -9,6 +9,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from .features import model_features
 from .model import SFNet
 
 
@@ -24,8 +25,9 @@ def grad_cam(model: SFNet, X: np.ndarray, device: str = "cpu", normalize: str = 
     h2 = model.last_conv.register_full_backward_hook(lambda m, gi, go: grads.__setitem__("g", go[0]))
     try:
         x = torch.as_tensor(X, device=device).requires_grad_(True)
+        f = (torch.as_tensor(model_features(X), device=device) if getattr(model, "n_features", 0) else None)
         model.zero_grad()
-        model(x).sum().backward()
+        model(x, f).sum().backward()
         a, g = acts["a"], grads["g"]
         cam = F.relu((g.mean((2, 3), keepdim=True) * a).sum(1, keepdim=True))
         cam = F.interpolate(cam, size=X.shape[-2:], mode="bilinear", align_corners=False)[:, 0]

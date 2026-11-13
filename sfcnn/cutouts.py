@@ -67,3 +67,17 @@ def extract_cutouts(skymap: SkyMap, xs, ys, size_arcsec: float = 96.0, npix: int
     if not fluxes:
         return np.zeros((0, N_CHANNELS, npix, npix), np.float32), keep
     return make_channels(np.stack(fluxes), np.stack(noises)), keep
+
+
+def extract_snr_channel(skymap: SkyMap, xs, ys, size_arcsec: float = 96.0, npix: int = 32) -> np.ndarray:
+    """Single asinh(S/N/3) channel from another map (e.g. 450 um) at the given pixel positions.
+    Missing data become 0. Returns (N, 1, npix, npix)."""
+    step = (size_arcsec / npix) / skymap.pixel_scale_arcsec
+    data, noise = skymap.data, skymap.noise_map()
+    out = np.zeros((len(xs), 1, npix, npix), np.float32)
+    for i, (x, y) in enumerate(zip(xs, ys)):
+        yy, xx = cutout_grid(float(x), float(y), npix, step)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            ch = np.arcsinh(_sample(data, yy, xx) / _sample(noise, yy, xx) / 3.0)
+        out[i, 0] = np.nan_to_num(ch, nan=0.0, posinf=0.0, neginf=0.0)
+    return out

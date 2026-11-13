@@ -1,0 +1,4 @@
+# Perseus with both 850 and 450 um maps (only Perseus 450 um maps were downloaded, to save disk space).
+regions:
+  - {name: PerseusWest, cloud: Perseus, distance_pc: 300, map: ../data/real/PerseusWest_20170815_850_DR3_ext_HK.fits.gz, map_450: ../data/real/PerseusWest_20170815_450_DR3_ext_HK.fits.gz, yso_catalog: ../data/real/gbs_ysos_all.csv}
+  - {name: PerseusIC348, cloud: Perseus, distance_pc: 300, map: ../data/real/PerseusIC348_20170725_850_DR3_ext_HK.fits.gz, map_450: ../data/real/PerseusIC348_20170725_450_DR3_ext_HK.fits.gz, yso_catalog: ../data/real/gbs_ysos_all.csv}

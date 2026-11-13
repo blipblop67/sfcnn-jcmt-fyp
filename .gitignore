@@ -5,3 +5,4 @@ data/
 runs/
 predictions/
 .pytest_cache/
+*.log

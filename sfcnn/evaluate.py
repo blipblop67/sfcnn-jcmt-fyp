@@ -17,7 +17,7 @@ from sklearn.preprocessing import StandardScaler
 from .dataset import load_dataset, save_json
 from .explain import grad_cam
 from .features import FEATURE_NAMES, cutout_features
-from .model import load_checkpoint, predict_proba
+from .model import load_checkpoint, predict_ensemble
 
 
 def best_f1_threshold(y: np.ndarray, p: np.ndarray) -> float:
@@ -36,17 +36,22 @@ def metrics(y: np.ndarray, p: np.ndarray, thr: float) -> dict:
             "tp": int(tp), "fp": int(fp), "tn": int(tn), "fn": int(fn)}
 
 
-def evaluate(checkpoint: str, dataset_path: str | None = None, out_dir: str | None = None,
+def evaluate(checkpoint, dataset_path: str | None = None, out_dir: str | None = None,
              tta: bool = True, verbose: bool = True) -> dict:
-    model, ck = load_checkpoint(checkpoint)
+    """checkpoint: one path, or a list of paths (seed ensemble, probabilities averaged).
+    All checkpoints must come from the same run (same splits)."""
+    paths = [checkpoint] if isinstance(checkpoint, (str, Path)) else list(checkpoint)
+    loaded = [load_checkpoint(p) for p in paths]
+    model, ck = loaded[0]
+    models = [m for m, _ in loaded]
     cfg = ck["config"]
     X, y, meta = load_dataset(dataset_path or cfg["data"]["output"])
     splits = {k: np.asarray(v, dtype=int) for k, v in ck["splits"].items()}
     tr, va, te = splits["train"], splits["val"], splits["test"]
-    out = Path(out_dir or Path(checkpoint).parent / "eval")
+    out = Path(out_dir or Path(paths[0]).parent / "eval")
     out.mkdir(parents=True, exist_ok=True)
 
-    probs = {"CNN (SFNet)": (predict_proba(model, X[va], tta=tta), predict_proba(model, X[te], tta=tta))}
+    probs = {"CNN (SFNet)": (predict_ensemble(models, X[va], tta=tta), predict_ensemble(models, X[te], tta=tta))}
 
     F = cutout_features(X)
     for name, clf in [("Logistic regression (features)",

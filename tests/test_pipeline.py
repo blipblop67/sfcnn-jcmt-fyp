@@ -93,3 +93,43 @@ def test_features_finite():
     X = np.random.default_rng(0).normal(0, 1, (5, 2, 32, 32)).astype(np.float32)
     F = cutout_features(X)
     assert F.shape == (5, len(FEATURE_NAMES)) and np.isfinite(F).all()
+
+
+def test_coverage_cut_drops_cores_far_from_any_yso():
+    src = pd.DataFrame({"ra": [10.0, 10.0], "dec": [0.0, 1.0]})
+    ysos = pd.DataFrame({"ra": [10.0], "dec": [0.05], "cls": ["II"]})  # 3' from core 0, 57' from core 1
+    out = label_sources(src, ysos, ["0", "I"], 15, 30, coverage_radius_arcmin=10)
+    assert list(out["label"]) == [0, -2]
+
+
+def test_hybrid_model_and_calibration():
+    from sfcnn.config import load_config
+    from sfcnn.model import build_model, predict_proba
+    from sfcnn.train import calibrate
+    cfg = load_config(None)
+    cfg["model"]["hybrid"] = True
+    m = build_model(cfg).eval()
+    assert m.n_features == len(FEATURE_NAMES)
+    X = np.random.default_rng(1).normal(0, 1, (12, 2, 32, 32)).astype(np.float32)
+    y = np.array([0, 1] * 6)
+    p0 = predict_proba(m, X, tta=False)
+    calibrate(m, X, y)
+    p1 = predict_proba(m, X, tta=False)
+    assert ((p1 >= 0) & (p1 <= 1)).all()
+    # calibration is monotonic (or skipped): the ranking, hence AUC, is preserved
+    assert np.array_equal(np.argsort(p0, kind="stable"), np.argsort(p1, kind="stable"))
+
+
+def test_fit_model_short_run_and_ensemble_shapes():
+    from sfcnn.config import load_config
+    from sfcnn.model import predict_ensemble
+    from sfcnn.train import fit_model
+    cfg = load_config(None)
+    cfg["train"].update(epochs=2, patience=5, batch_size=8, mixup_alpha=0.2)
+    rng = np.random.default_rng(0)
+    X = rng.normal(0, 1, (40, 2, 32, 32)).astype(np.float32)
+    y = np.array([0, 1] * 20)
+    tr, va = np.arange(30), np.arange(30, 40)
+    ms = [fit_model(cfg, X, y, tr, va, seed=s, verbose=False)[0] for s in (0, 1)]
+    p = predict_ensemble(ms, X[va], tta=False)
+    assert p.shape == (10,) and np.isfinite(p).all()

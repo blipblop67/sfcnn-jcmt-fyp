@@ -45,8 +45,13 @@ def _nearest_sep_arcsec(src: SkyCoord, cat: pd.DataFrame) -> np.ndarray:
 def label_sources(sources: pd.DataFrame, ysos: pd.DataFrame,
                   sf_classes=DEFAULT_SF_CLASSES, match_radius_arcsec: float = 15.0,
                   exclusion_radius_arcsec: float = 30.0,
-                  ambiguous_if_other_yso: bool = True) -> pd.DataFrame:
-    """Adds columns ``sep_protostar``, ``sep_other_yso`` (arcsec) and ``label`` (1/0/-1)."""
+                  ambiguous_if_other_yso: bool = True,
+                  coverage_radius_arcmin: float | None = None) -> pd.DataFrame:
+    """Adds columns ``sep_protostar``, ``sep_other_yso`` (arcsec) and ``label`` (1/0/-1/-2).
+
+    coverage_radius_arcmin: a core with no catalogued YSO of *any* class within this
+    radius is probably outside the infrared survey footprint, where "no protostar"
+    means "not observed" rather than "starless". Such cores get label -2 (dropped)."""
     sf_set = {normalise_class(c) for c in sf_classes}
     is_proto = ysos["cls"].isin(sf_set)
     src = SkyCoord(sources["ra"].to_numpy() * u.deg, sources["dec"].to_numpy() * u.deg)
@@ -61,6 +66,8 @@ def label_sources(sources: pd.DataFrame, ysos: pd.DataFrame,
         # protostar whose classification is wrong, so don't call it starless.
         neg &= sep_o > match_radius_arcsec
     label[neg] = 0
+    if coverage_radius_arcmin:
+        label[np.minimum(sep_p, sep_o) > coverage_radius_arcmin * 60.0] = -2
     out = sources.copy()
     out["sep_protostar"] = sep_p
     out["sep_other_yso"] = sep_o

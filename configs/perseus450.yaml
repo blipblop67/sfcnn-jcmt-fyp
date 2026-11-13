@@ -1,0 +1,8 @@
+# Perseus with a third input channel: 450 um asinh(S/N/3).
+data:
+  manifest: configs/perseus450_manifest.yaml
+  output: data/processed/perseus450.npz
+cutout:
+  use_450: true
+split: {mode: spatial, val_fraction: 0.15, test_fraction: 0.2, block_arcsec: 300.0, buffer: true, seed: 42}
+train: {epochs: 80, min_epochs: 25, patience: 15, run_dir: runs/perseus450}

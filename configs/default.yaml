@@ -17,6 +17,7 @@ labels:
   match_radius_arcsec: 15.0     # protostar within ~1 beam of the peak -> label 1
   exclusion_radius_arcsec: 30.0 # no protostar within this -> label 0; in between dropped
   ambiguous_if_other_yso: true  # Class II/III on the peak -> dropped
+  coverage_radius_arcmin: 10.0  # no YSO of any class within 10 arcmin -> outside IR survey, dropped
 
 cutout:
   size_arcsec: 96.0             # ~7 beams across; ~0.14 pc at 300 pc

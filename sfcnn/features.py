@@ -41,3 +41,10 @@ def cutout_features(X: np.ndarray) -> np.ndarray:
     feats[:, 4] = np.sqrt(l2 / l1)
     feats[:, 5] = np.median(morph[:, ann], axis=1)
     return feats
+
+
+def model_features(X: np.ndarray) -> np.ndarray:
+    """Features for the hybrid CNN: S/N features asinh-compressed so they standardise well."""
+    F = cutout_features(X)
+    F[:, :2] = np.arcsinh(F[:, :2])
+    return F.astype(np.float32)

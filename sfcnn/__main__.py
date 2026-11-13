@@ -6,6 +6,7 @@
   evaluate   test-set metrics, baselines, plots, Grad-CAM
   classify   classify cores in a new map
   probmap    sliding-window P(star-forming) FITS map
+  cv         cross-validate model variants (leave-one-cloud-out or repeated spatial splits)
   demo       synth -> build -> train -> evaluate -> classify -> probmap
 """
 from __future__ import annotations
@@ -30,7 +31,7 @@ def main(argv=None) -> None:
     t = sub.add_parser("train"); t.add_argument("--dataset"); t.add_argument("--run-dir")
     t.add_argument("--epochs", type=int); t.add_argument("--split-mode", choices=["region", "spatial", "random"])
 
-    e = sub.add_parser("evaluate"); e.add_argument("--checkpoint", required=True)
+    e = sub.add_parser("evaluate"); e.add_argument("--checkpoint", required=True, nargs="+", help="one checkpoint, or several to evaluate a seed ensemble")
     e.add_argument("--dataset"); e.add_argument("--out"); e.add_argument("--no-tta", action="store_true")
 
     k = sub.add_parser("classify"); k.add_argument("--checkpoint", required=True); k.add_argument("--map", required=True)
@@ -42,8 +43,24 @@ def main(argv=None) -> None:
 
     d = sub.add_parser("demo"); d.add_argument("--epochs", type=int)
 
+    v = sub.add_parser("cv", help="cross-validate several model variants on the same folds")
+    v.add_argument("--dataset"); v.add_argument("--out", required=True)
+    v.add_argument("--scheme", choices=["cloud", "spatial"], default="cloud")
+    v.add_argument("--variants", default="peak,lr,rf,cnn,cnn_ens,hybrid,hybrid_ens,mixup,small,pretrained")
+    v.add_argument("--repeats", type=int, default=5, help="number of splits for --scheme spatial")
+    v.add_argument("--ensemble", type=int, default=3); v.add_argument("--min-test-pos", type=int, default=5)
+    v.add_argument("--pretrained", help="checkpoint for the 'pretrained' variant (e.g. runs/sfnet/best.pt)")
+    v.add_argument("--epochs", type=int)
+
     a = ap.parse_args(argv)
     cfg = load_config(a.config if Path(a.config).exists() else None)
+
+    if a.cmd == "cv":
+        from .cv import cross_validate
+        if a.epochs: cfg["train"]["epochs"] = a.epochs
+        cross_validate(cfg, a.dataset, a.out, a.variants.split(","), a.scheme, a.repeats, a.ensemble,
+                       a.min_test_pos, a.pretrained)
+        return
 
     if a.cmd == "synth":
         from .synthetic import make_synthetic_survey

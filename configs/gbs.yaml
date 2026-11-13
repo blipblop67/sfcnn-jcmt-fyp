@@ -1,0 +1,14 @@
+# All 20 GBS DR3 850 um maps in 8 clouds + Dunham et al. (2015) YSOs.
+data:
+  manifest: configs/gbs_manifest.yaml
+  output: data/processed/gbs.npz
+split:
+  mode: region           # whole clouds held out (grouped by the manifest's "cloud")
+  test_regions: [Perseus]
+  val_regions: [Cepheus]
+  seed: 42
+train:
+  epochs: 60
+  min_epochs: 15
+  patience: 12
+  run_dir: runs/gbs
