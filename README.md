@@ -1,6 +1,28 @@
 # Classifying Star-Forming and Non-Star-Forming Dense Cores in JCMT SCUBA-2 Maps with a Convolutional Neural Network
 
-*Final Year Project: code and report*
+*Revisiting my 2023 final-year project: code and report*
+
+### Background
+This project started as my BSc final-year project at Universiti Sains Malaysia (USM) in 2023,
+*Machine Learning Applications for the James Clerk Maxwell Telescope*
+([original code](original_2023/sfcnn_2023.ipynb), reconstructed from the thesis appendix
+because the Colab notebook no longer exists). That version trained a simple Keras CNN on 150 PNG
+images from the JCMT Transient Survey, using a random split and reporting accuracy on the
+validation set.
+
+Looking back, my knowledge at the time was limited. I converted the data to images and lost
+the physical information. The labels weren't well defined. I had no baselines to compare
+against, and there was no proper held-out test, so I couldn't tell whether the model had
+learned anything real.
+
+The original Colab notebook is no longer available. Since 2023 I've learned a lot more about
+machine learning and astronomical data, so in 2026 I decided to build the project again, and
+better this time. I developed it locally on my laptop and uploaded it to GitHub once it was
+working, which is why the commit history is short. This version works directly on SCUBA-2
+FITS maps from 8 Gould Belt clouds. It labels cores automatically from YSO catalogues,
+compares the CNN against classical baselines, and tests every model on clouds it has never
+seen. The results are more modest than the original 0.92 accuracy, but they are far more
+trustworthy, and the report below explains why.
 
 ---
 
@@ -718,6 +740,7 @@ sfcnn/
   predict.py     classify new maps, probability maps
   synthetic.py   synthetic SCUBA-2 survey generator
   __main__.py    command-line interface
+original_2023/sfcnn_2023.ipynb  the 2023 Keras notebook (reconstructed from the thesis appendix)
 scripts/prepare_dunham2015.py   VizieR YSO table → sfcnn CSV with classes
 scripts/make_gbs_manifest.py    manifest for all GBS maps (cloud, distance, 450 µm)
 configs/         default (synthetic), perseus, gbs (8 clouds), gbs_phys, perseus450, manifests
